@@ -15,6 +15,7 @@ pub fn main() !void {
     }
 
     const input = args[1];
-    const output = hasher.hash(input, 0);
-    try stdout.print("{x}\n", .{output});
+    const hash = hasher.hash(input, 0);
+    const hash128 = hasher.hash_128(input, 0);
+    try stdout.print("hash:\n{x}\n\nhash128:\n{x}\n", .{ hash, hash128 });
 }

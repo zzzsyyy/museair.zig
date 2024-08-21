@@ -1,4 +1,6 @@
 const std = @import("std");
+const mem = std.mem;
+const math = std.math;
 
 const State = [6]u64;
 
@@ -30,12 +32,12 @@ inline fn wmul(a: u64, b: u64) [2]u64 {
 }
 
 inline fn read_u32(bytes: []const u8) u64 {
-    const value = std.mem.readVarInt(u32, bytes[0..4], .little);
+    const value = mem.readVarInt(u32, bytes[0..4], .little);
     return @intCast(value);
 }
 
 inline fn read_u64(bytes: []const u8) u64 {
-    return std.mem.readVarInt(u64, bytes[0..8], .little);
+    return mem.readVarInt(u64, bytes[0..8], .little);
 }
 
 inline fn read_short(bytes: []const u8) [2]u64 {
@@ -196,8 +198,8 @@ inline fn _tower_layer_x(comptime BFAST: bool, ijk: [3]u64, tot_len: u64) [3]u64
     const rot = @as(u32, @truncate(tot_len)) & 0b11_1111;
     var i, var j, var k = ijk;
     i, j, k = _chixx(i, j, k);
-    i = std.math.rotl(u64, i, rot);
-    j = std.math.rotr(u64, j, rot);
+    i = math.rotl(u64, i, rot);
+    j = math.rotr(u64, j, rot);
     k ^= tot_len;
     if (!BFAST) {
         const lo0, const hi0 = wmul(i ^ DEFAULT_SECRET[3], j);
@@ -314,7 +316,8 @@ inline fn epi_loong(comptime BFAST: bool, ijk: [3]u64) u64 {
     return i +% j +% k;
 }
 
-inline fn epi_loong_128(comptime BFAST: bool, i: u64, j: u64, k: u64) u128 {
+inline fn epi_loong_128(comptime BFAST: bool, ijk: [3]u64) u128 {
+    var i, var j, const k = ijk;
     if (!BFAST) {
         const lo0, const hi0 = wmul(i ^ DEFAULT_SECRET[0], j);
         const lo1, const hi1 = wmul(j ^ DEFAULT_SECRET[1], k);
@@ -345,7 +348,7 @@ inline fn base_hash_128(comptime BFAST: bool, bytes: []const u8, seed: u64) u128
         return epi_short_128(BFAST, tower_short(bytes, seed));
     } else {
         @setCold(true);
-        epi_loong_128(BFAST, tower_loong(BFAST, bytes, seed));
+        return epi_loong_128(BFAST, tower_loong(BFAST, bytes, seed));
     }
 }
 
